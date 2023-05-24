@@ -9,12 +9,16 @@ import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import AddCommentIcon from '@mui/icons-material/AddComment';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Box } from '@mui/material';
+import { green } from '@mui/material/colors';
 import axios from 'axios';
 import moment from 'moment';
 
 export default function AddMessageDialog({callback}) {
   const [open, setOpen] = React.useState(false);
   const [message, setMessage] = React.useState('');
+  const [loading, setLoading] = React.useState(false)
 
   const handleChange = async (e) => {
     setMessage(e.target.value);
@@ -25,8 +29,14 @@ export default function AddMessageDialog({callback}) {
       message,
       insertDate: moment().format("MM/DD/yyyy")
     }
-    await axios.post("/microapi1", data);
-    await callback()
+    setLoading(true);
+    try {
+      await axios.post("/microapi1", data);
+      await callback();
+    } catch(err) {
+      alert(err);
+    }
+    setLoading(false)
   }
 
   const handleClickOpen = () => {
@@ -35,6 +45,7 @@ export default function AddMessageDialog({callback}) {
 
   const handleClose = () => {
     setOpen(false);
+    setMessage('');
   };
 
   return (
@@ -44,9 +55,6 @@ export default function AddMessageDialog({callback}) {
             <AddCommentIcon />
           </IconButton>
         </Tooltip>
-      {/* <Button variant="outlined" onClick={handleClickOpen}>
-       Add A Message To Queue
-      </Button> */}
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Publish Message</DialogTitle>
         <DialogContent>
@@ -66,8 +74,38 @@ export default function AddMessageDialog({callback}) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handlePublish}>Publish</Button>
+        <Box sx={{ m: 1, position: 'relative' }}>
+            <Button variant="contained" disabled={loading} onClick={handleClose} style={{marginRight: "10px"}}>Cancel</Button>
+            {loading && (
+              <CircularProgress
+                size={24}
+                sx={{
+                  color: green[500],
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  marginTop: '-12px',
+                  marginLeft: '-12px',
+                }}
+              />
+          )}
+          </Box>
+          <Box sx={{ m: 1, position: 'relative' }}>
+            <Button variant="contained" onClick={handlePublish} disabled={loading}>Publish</Button>
+            {loading && (
+              <CircularProgress
+                size={24}
+                sx={{
+                  color: green[500],
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  marginTop: '-12px',
+                  marginLeft: '-12px',
+                }}
+              />
+          )}
+          </Box>
         </DialogActions>
       </Dialog>
     </div>
